@@ -1,7 +1,5 @@
-import getpass
 import smtplib
 import tkinter as tk
-import requests
 from Customwidgets import Drag_and_Drop_Listbox
 from tkinter import filedialog as fd
 from tkinter.messagebox import showinfo
@@ -13,10 +11,6 @@ from email import encoders
 import base64
 import os
 
-
-
-
-global loaded
 class MailSetup:
     def __init__(self,smtp_domain=None,smtp_port=None,sender_email=None,password=None,receive_email=None):
         self.smtp_domain = smtp_domain
@@ -96,7 +90,7 @@ class App(tk.Tk):
         super().__init__()
         self.title("Send To")
         self.geometry("1080x720")
-        self.resizable(True, True)
+        self.resizable(False, False)
         self.colors = {"bg1":"#343A40","fg1":"white","bg2":"#DEE2E6","fg2":"black","white":"white","black":"#212529"}
         self.topframe = tk.Frame(self,bg=self.colors["bg1"])
         self.topframe.pack(side="top",fill="both",expand=True)
@@ -117,6 +111,7 @@ class App(tk.Tk):
         self.logfield = tk.Text(self.logframe,bg=self.colors["black"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=100)
         self.logfield.pack(side="top",anchor="nw",padx=0,pady=0,fill="both",expand=True,ipady=20)
 
+        
         def log(message):
 
             #check if bottom line is full and delete , else insert the text
@@ -129,23 +124,24 @@ class App(tk.Tk):
                 self.logfield.insert("end",message + '\n')
 
 
-
+        self.yourinfolbl = tk.Label(self.topleftframe,text="Your info: ",bg=self.colors["bg1"],fg=self.colors["fg1"],font=("Arial",20,"bold"))
+        self.yourinfolbl.pack(side="top",anchor="nw",padx=0,pady=20)
         self.mailframe = tk.Frame(self.topleftframe,bg=self.colors["bg1"])
         self.mailframe.pack(side="top",anchor="nw",padx=(30,0),pady=10)
         self.maillabel = tk.Label(self.mailframe,text="Your Email: ",bg=self.colors["bg1"],fg=self.colors["fg1"])
         self.maillabel.pack(side="left")
-        self.mailentry = tk.Entry(self.mailframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=30)
+        self.mailentry = tk.Entry(self.mailframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=28)
         self.mailentry.pack(side="left")
         self.mailentry.insert(0,self.usersetup.sender_email)
         
 
 
-
+    
         self.passwordframe = tk.Frame(self.topleftframe,bg=self.colors["bg1"])
         self.passwordframe.pack(side="top",anchor="nw",padx=(30,0),pady=5)
         self.passwordlabel = tk.Label(self.passwordframe,text="Email password: ",bg=self.colors["bg1"],fg=self.colors["fg1"])
         self.passwordlabel.pack(side="left")
-        self.passwordentry = tk.Entry(self.passwordframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=25)
+        self.passwordentry = tk.Entry(self.passwordframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=24)
         self.passwordentry.pack(side="left")
         self.passwordentry.insert(0,self.usersetup.password)
         
@@ -158,23 +154,53 @@ class App(tk.Tk):
             password = self.passwordentry.get()
             senderemail = self.mailentry.get()
             
-            self.usersetup.domain_setup(senderemail,password,self.sendentry.get())
+            self.usersetup.domain_setup(senderemail,password,self.receiverentry.get())
             log(f"Sender email:{self.usersetup.get_sender_email()} set successfully")
             log(f"Sender password:{self.usersetup.get_password()} set successfully")
             log(f"Receiver email:{self.usersetup.receive_eemail} set successfully")
             pass
             
         
+        def showhelp(self):
+            helpmessage = """Welcome to Sendto a gui interface to send files from one email to another.\n
+            This was made with the intention of sending files to kindle devices \n but it can be used for any type of file. \n
+            It requires an smtp server to send the emails. \n
+            It requires an email and password to send the emails. \n
+            It also requires an email to receive the files. \n
+            Your email and password will be stored in usersetup.txt. \n
+            **Important** If you use a gmail account, you will need to get an app password. \n
+            You can get one for free at https://myaccount.google.com/apppasswords 
+            Once you have an app password, enter it in the app password field. \n
+            Afterwards set the information and it will be stored in usersetup.txt. \n
+            
+            App binds: \n
+            Double click the queue to remove files from queue. \n
+            """
+            helpwindow = tk.Toplevel(self)
+            helpwindow.title("Help")
+            helpwindow.geometry("700x700")
+            helpwindow.resizable(False, False)
+            helpwindow.configure(bg=self.colors["bg1"])
 
-        self.setinfo = tk.Button(self.topleftframe,text="Set",bg=self.colors["bg1"],fg=self.colors["fg1"],width=30,command=lambda:setuserinfo(self))
+            helpframe = tk.Frame(helpwindow,bg=self.colors["bg1"])
+            helpframe.pack(side="top",anchor="nw",padx=0,pady=0,fill="both",expand=True)
+
+            helptext = tk.Label(helpframe,bg=self.colors["bg1"],text=helpmessage,fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=100)
+            helptext.pack(side="top",anchor="nw",padx=0,pady=0,fill="both",expand=True,ipady=20)
+
+
+
+        self.setinfo = tk.Button(self.topleftframe,text="Set",bg=self.colors["bg1"],fg=self.colors["fg1"],width=35,command=lambda:setuserinfo(self))
         self.setinfo.pack(side="top",anchor="nw",padx=30,pady= (10,0))
-        self.sendsectionlbl = tk.Label(self.topleftframe,text="Send to: ",bg=self.colors["bg1"],fg=self.colors["fg1"],font=("Arial",20,"bold"))
-        self.sendsectionlbl.pack(side="top",anchor="nw",padx=0,pady=20)
-        self.sendemail = tk.Label(self.topleftframe,text="Receiver email: ",bg=self.colors["bg1"],fg=self.colors["fg1"])
-        self.sendemail.pack(side="left",anchor="nw",padx=0,pady=10)
-        self.sendentry = tk.Entry(self.topleftframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=30)
-        self.sendentry.insert(0,self.usersetup.receive_email)
-        self.sendentry.pack(side="top",anchor="nw",padx=0,pady=10)
+        self.receiversectionlbl = tk.Label(self.topleftframe,text="Send to: ",bg=self.colors["bg1"],fg=self.colors["fg1"],font=("Arial",20,"bold"))
+        self.receiversectionlbl.pack(side="top",anchor="nw",padx=0,pady=20)
+        self.receiveremail = tk.Label(self.topleftframe,text="Receiver email: ",bg=self.colors["bg1"],fg=self.colors["fg1"])
+        self.receiveremail.pack(side="left",anchor="nw",padx=0,pady=10)
+        self.receiverentry = tk.Entry(self.topleftframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=28)
+        self.receiverentry.insert(0,self.usersetup.receive_email)
+        self.receiverentry.pack(side="top",anchor="nw",padx=0,pady=10)
+        
+        
         
 
 
@@ -182,15 +208,15 @@ class App(tk.Tk):
             log("Sending email")
             if type(self.usersetup.smtp_domain) == type(None)  or type(self.usersetup.smtp_port)== type(None):
                 log("Configuring smtp-domain and sm-port")
-                self.usersetup.domain_setup(self.usersetup.sender_email,self.usersetup.password,self.sendentry.get())
+                self.usersetup.domain_setup(self.usersetup.sender_email,self.usersetup.password,self.receiverentry.get())
             msg = MIMEMultipart()
             msg['From'] = self.usersetup.get_sender_email()
-            msg['To'] = self.sendentry.get()
+            msg['To'] = self.receiverentry.get()
             msg['Date'] = formatdate(localtime=True)
             msg['Subject'] = "Sendto: File sent"
 
             files = self.queue.get(0,'end')
-            body = "Probando :)"    
+            body = "Sendto: File sent from " + self.usersetup.get_sender_email()  
 
             msg.attach(MIMEText(body, 'plain'))
             log("Attaching files....")
@@ -214,28 +240,35 @@ class App(tk.Tk):
             server.login(self.usersetup.sender_email, self.usersetup.password)
             log("Login successful")
             log("Sending email....")
-            server.sendmail(self.usersetup.sender_email, self.sendentry.get(), msg.as_string())
+            server.sendmail(self.usersetup.sender_email, self.receiverentry.get(), msg.as_string())
             server.quit()
             log("Email sent successfully")
          
 
-        self.sendbtn = tk.Button(self.topleftframe,text="Send",bg=self.colors["bg1"],fg=self.colors["fg1"],width=30,command=sendmessage)
-        self.sendbtn.pack(side="top",anchor="nw",padx=0,pady=10)
+        self.sendbtn = tk.Button(self.topleftframe,text="Send",bg=self.colors["bg1"],fg=self.colors["fg1"],width=20,command=sendmessage)
+        self.sendbtn.pack(side="left",anchor="nw",padx=0,pady=10)
 
            
 
         def select_file():
             filetypes = (
-                ('text files', '*.txt'),
+                ('epub files', '*.epub'),
+                ('pdf files', '*.pdf'),
+                ('mobi files', '*.mobi'),
                 ('All files', '*.*')
             )
 
-            filename = fd.askopenfilename(
+            filenames = fd.askopenfilenames(
                 title='Open a file',
                 initialdir='/',
                 filetypes=filetypes)
+            list_files = self.queue.get(0,'end')
+            for file in filenames:
+                if file not in list_files:
+                    self.queue.insert('end',file)
+            else:
+                log("File already in queue")
 
-            self.queue.insert('end',filename)
 
         def addfile():
             if self.queuepathentry.get() == "":
@@ -248,25 +281,32 @@ class App(tk.Tk):
  
             self.queue.delete(selection)
 
-
-
         self.queueframe = tk.Frame(self.toprightframe,bg=self.colors["bg1"])
-        self.queueframe.pack(side="top",anchor="nw",padx=(30,0),pady=10)
-        self.queuelbl = tk.Label(self.queueframe,text="Queue: ",bg=self.colors["bg1"],fg=self.colors["fg1"],font=("Arial",20,"bold"))
-        self.queuelbl.pack(side="top",anchor="nw",padx=0,pady=20)
-        self.queuepathentry = tk.Entry(self.queueframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=30)
-        self.addbtn = tk.Button(self.queueframe,text="Add",bg=self.colors["bg1"],fg=self.colors["fg1"],width=5,command=addfile)
+        self.queueframe.pack(side="top",anchor="nw",padx=(30,0),pady=10,fill="both",expand=True)
+
+        self.lblhelpframe = tk.Frame(self.queueframe,bg=self.colors["bg1"])
+        self.lblhelpframe.pack(side="top",padx=0,pady=10,fill="both",expand=True)
+        self.queuelbl = tk.Label(self.lblhelpframe,text="Queue: ",bg=self.colors["bg1"],fg=self.colors["fg1"],font=("Arial",20,"bold"))
+        self.queuelbl.pack(side="left",anchor="nw",padx=0,pady=20)
+        self.queuepathentry = tk.Entry(self.queueframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=38)
+        self.addbtn = tk.Button(self.queueframe,text="Add",bg=self.colors["bg1"],fg=self.colors["fg1"],width=2,command=addfile)
         
-        self.browsepath = tk.Button(self.queueframe,text="Browse",bg=self.colors["bg1"],fg=self.colors["fg1"],width=5,command=select_file)
-        self.queuepathentry.pack(side="left",anchor="nw",padx=(0,5),pady=10)
+        self.browsepath = tk.Button(self.queueframe,text="Browse",bg=self.colors["bg1"],fg=self.colors["fg1"],width=4,command=select_file)
+        self.queuepathentry.pack(side="left",anchor="nw",padx=(0,10),pady=10)
         self.addbtn.pack(side="left",anchor="nw",padx=(0,5),pady=10)
-        self.browsepath.pack(side="left",anchor="nw",padx=0,pady=10)
+        self.browsepath.pack(side="left",anchor="nw",padx=(0,5),pady=10)
 
         
         self.queue = Drag_and_Drop_Listbox(self.toprightframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=50,height=15)
-        self.queue.pack(side="top",anchor="nw",padx=0,pady=15,expand=True)
+        self.queue.pack(side="top",anchor="nw",padx=(20,0),pady=15,expand=True,ipadx=45,ipady=0)
         self.queue.bind("<Double-Button-1>" , removeValue)
+        self.queue.bind("<Button-3>" , removeValue)
 
+        self.clearqueuebtn = tk.Button(self.queueframe,text="Clear",bg=self.colors["bg1"],fg=self.colors["fg1"],width=3,command=lambda: self.queue.delete(0,'end'))
+        self.clearqueuebtn.pack(side="left",anchor="nw",pady=10)
+
+        self.helpbutton = tk.Button(self.lblhelpframe,text="Help",bg=self.colors["bg1"],fg=self.colors["fg1"],width=2,command=lambda:showhelp(self))
+        self.helpbutton.pack(side="right",anchor="ne",pady=(20,0),padx=(0,35))
         
 
         self.mainloop()
