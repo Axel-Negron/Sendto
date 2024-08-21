@@ -10,6 +10,8 @@ from email.utils import formatdate
 from email import encoders  
 import base64
 import os
+import epubcrush
+
 
 class MailSetup:
     def __init__(self,smtp_domain=None,smtp_port=None,sender_email=None,password=None,receive_email=None):
@@ -282,6 +284,41 @@ class App(tk.Tk):
  
             self.queue.delete(selection)
 
+        def showoptions(event):
+            def compress(event):
+                file = self.queue.get(tk.ANCHOR)
+                if file.split(".")[-1] == "epub":
+                    epubcrush.crush_epub(file, quality=quality_slider.get())
+                    log(f"Compressed {file}")
+                    pass
+
+
+            optionswndw = tk.Toplevel(self.toprightframe)
+            optionswndw.title("Options")
+            optionswndw.geometry("250x250")
+            optionswndw.resizable(False,False)
+            optionswndw.configure(bg=self.colors["bg1"])
+            compressbtn = tk.Button(optionswndw,text="Compress",bg=self.colors["bg1"],fg=self.colors["fg1"],width=20,command=compress)
+            compressbtn.pack(side="top",anchor="nw",padx=0,pady=10,fill="x")
+            checkbuttonframe = tk.Frame(optionswndw,bg=self.colors["bg1"])
+            checkbuttonframe.pack(side="top",anchor="nw",padx=0,pady=10,fill="both",expand=True)
+            # imgs = tk.BooleanVar()
+            # imgs.set(True)
+            # images_check = tk.Checkbutton(checkbuttonframe,text="Images",bg=self.colors["bg1"],fg=self.colors["fg1"],variable=imgs)
+            # images_check.pack(side="left",anchor="nw",padx=0,pady=10)
+            # styles = tk.BooleanVar()
+            # styles.set(True)
+            # styles_check = tk.Checkbutton(checkbuttonframe,text="Styles",bg=self.colors["bg1"],fg=self.colors["fg1"],variable=styles)
+            # styles_check.pack(side="left",anchor="nw",padx=0,pady=10)
+            # fonts = tk.BooleanVar()
+            # fonts.set(True)
+            # fonts_check = tk.Checkbutton(checkbuttonframe,text="Fonts",bg=self.colors["bg1"],fg=self.colors["fg1"],variable=fonts)
+            # fonts_check.pack(side="left",anchor="nw",padx=0,pady=10)
+            quality_slider = tk.Scale(optionswndw,from_=0,to=100,orient="horizontal")
+            quality_slider.pack(side="top",anchor="nw",padx=0,pady=10,fill="both",expand=True)
+
+
+
         self.queueframe = tk.Frame(self.toprightframe,bg=self.colors["bg1"])
         self.queueframe.pack(side="top",anchor="nw",padx=(30,0),pady=10,fill="both",expand=True)
 
@@ -301,7 +338,7 @@ class App(tk.Tk):
         self.queue = Drag_and_Drop_Listbox(self.toprightframe,bg=self.colors["bg1"],fg=self.colors["fg1"],highlightthickness=1,highlightbackground=self.colors["white"],width=50,height=15)
         self.queue.pack(side="top",anchor="nw",padx=(20,0),pady=15,expand=True,ipadx=45,ipady=0)
         self.queue.bind("<Double-Button-1>" , removeValue)
-        self.queue.bind("<Button-3>" , removeValue)
+        self.queue.bind("<Button-3>" , showoptions)
 
         self.clearqueuebtn = tk.Button(self.queueframe,text="Clear",bg=self.colors["bg1"],fg=self.colors["fg1"],width=3,command=lambda: self.queue.delete(0,'end'))
         self.clearqueuebtn.pack(side="left",anchor="nw",pady=10)
