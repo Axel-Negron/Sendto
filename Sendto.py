@@ -172,7 +172,8 @@ class App(tk.Tk):
             You can get one for free at https://myaccount.google.com/apppasswords 
             Once you have an app password, enter it in the app password field. \n
             Afterwards set the information and it will be stored in usersetup.txt. \n
-            
+            **Help my file is not being sent:\n
+            Ensure total filesize is less than:\n 25mb (Google limits), This limit may be different depending on your email provider. \n
             App binds: \n
             Double click the queue to remove files from queue. \n
             """
